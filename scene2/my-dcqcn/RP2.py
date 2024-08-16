@@ -14,12 +14,12 @@ SEND_STATE = "increase"  # "recover" "increase"
 SEND_SWITCH = True
 #TARGET_IP = "10.0.0.2"
 TARGET_IP = "10.0.2.5"
-#RATE_C = 50#初始速度pps
-RATE_C = 1#初始速度mbps
+
+RATE_C = 1#mbps
 RATE_T = 0
 RATE_AI = 5
-CYCLE_N = 5#循环次数N
-CYCLE_CUR = 5#快速恢复循环计数器n
+CYCLE_N = 5
+CYCLE_CUR = 5
 BETA = 1
 pkt_count=0
 temp1=0
@@ -69,16 +69,13 @@ def send_rate():
     global CYCLE_CUR
     global SEND_SWITCH
     if SEND_STATE == "increase":
-        print("逐渐增加")
         RATE_T += RATE_AI
         RATE_C = (RATE_T + RATE_C) / 2
     elif SEND_STATE == "recover":
         if CYCLE_CUR > 0:
-            print("快速恢复")
             RATE_C = (RATE_T + RATE_C) / 2
             CYCLE_CUR -= 1
         else:#"recover"--->"increase"
-            print("逐渐增加")
             SEND_STATE = "increase"
             RATE_T += RATE_AI
             RATE_C = (RATE_T + RATE_C) / 2
@@ -94,16 +91,15 @@ def send_pkt():
     addr = socket.gethostbyname(TARGET_IP)
     iface = get_if()
     pkt = Ether(src=get_if_hwaddr(iface), dst="ff:ff:ff:ff:ff:ff")/IP(dst=addr, tos=1, options = IPOption_INT(count=0, int_headers=[]))/UDP(dport=4321, sport=1234)
-    payload_s = "\x00" * (100 - len(pkt))#\x00占一字节
+    payload_s = "\x00" * (100 - len(pkt))
     pkt = pkt / payload_s
 
     while SEND_SWITCH==True:       
-        if SEND_STATE != "reduction":#状态不是减少
+        if SEND_STATE != "reduction":
             RATE_C = send_rate();
 
         RATE_PPS = RATE_C * 1000 / 8 * 1000 / 100        
         pkt.time=time.time()
-        #sendpfast(pkt, pps=RATE_C, loop=RATE_C, iface=iface)
         sendpfast(pkt, mbps=RATE_C, loop=RATE_PPS, iface=iface)
         print("RATE: ",RATE_C)
 
@@ -116,10 +112,7 @@ def on_fbp_recv(p):
     global CYCLE_CUR
     global SEND_STATE
     if p.haslayer("IP") and p["IP"].tos == 2:
-        print("tos=2,速率减少") #reduction
         SEND_STATE = "reduction"
-        #print("got a feedback packet")            
-        #print("速度减少") #reduction
         RATE_T = RATE_C
         RATE_C = RATE_C * (1 - BETA/2)
         CYCLE_CUR = CYCLE_N
@@ -131,7 +124,6 @@ def on_fbp_recv(p):
 
 
 def check_fbp():
-    #sniff(prn=lambda x:on_fbp_recv(x), count=0, iface="h1-eth0")#count:指定最多嗅探多少个符合要求的报文，设置为0时则一直捕获
     iface = get_if()
     sniff(iface= iface, prn=lambda x:on_fbp_recv(x), count =0)
 

@@ -10,7 +10,7 @@ import time
 class controller():
 
     def __init__(self, port):
-        self.port = port#监听端口
+        self.port = port
         
         pre_type = thrift_API.PreType.SimplePre
         
@@ -27,10 +27,9 @@ class controller():
 
 
 def main():
-    port=int(9090)#监听端口
-    #register_name="ecn"#寄存器名字
+    port=int(9090)
     
-    with open('k.txt', 'w+') as f:#文件初始化
+    with open('k.txt', 'w+') as f:
         f.write(str(0))
     
     while True:
@@ -39,7 +38,6 @@ def main():
             line = line.strip("\n")
             line = line.strip()
             line = line.strip("\t")
-            #k = int(float(line))
         if line!= 0:
             controller(port).read_and_write(line)
     

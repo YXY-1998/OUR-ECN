@@ -35,7 +35,7 @@ class IPOption_INT(IPOption):
                     FieldLenField("length", None, fmt="B",
                                   length_of="int_headers",
                                   adjust=lambda pkt,l:l*2+4),
-                    ShortField("count", 0),#短整形字段，名字count，初始值0
+                    ShortField("count", 0),
                     PacketListField("int_headers",
                                    [],
                                    SwitchTrace,
@@ -46,7 +46,6 @@ start_time=time.time()
 
 
 def get_if():
-#获取接口列表['lo','eth0','eth1','eth2']
     ifs=get_if_list()
     iface=None
     for i in get_if_list():
@@ -61,15 +60,12 @@ def get_if():
 
 def handle_pkt(pkt):
     print("got a packet")
-    #计算吞吐量
+    #throughput
     global pkt_count
     global start_time
     if pkt[IP].dst == "10.0.2.5":
         pkt_count=pkt_count+1
-        #t=time.time()
-        #计算时间差
         elapsed_time = time.time() - start_time
-        # 如果已经过去一秒，则计算并输出每秒抓取的数据包数量，并重置计数器和开始时间
         if elapsed_time >= 1:
             th = pkt_count/elapsed_time
             pkt_count = 0
@@ -77,21 +73,16 @@ def handle_pkt(pkt):
                 f.write(str(th)+'\n')
             start_time = time.time()
 
-        #计算RTT
-        #iface = get_if()
-        #ip = pkt[IP]
-        time1=pkt.time#数据包发送时间
-        #print(time1)
-        time2=time.time()#接收时间
-        #print(time1,time2)
-        t=2*(time2-time1)#单位s
-        #t=t*1000000#单位微妙
-        t=t*1000#单位ms
+        #RTT
+        time1=pkt.time
+        time2=time.time()
+        t=2*(time2-time1)#s
+        t=t*1000#ms
         print(t)
         with open('data/rtt-tcn.txt', 'a') as f:
             f.write(str(t)+'\n')
 
-        #队列长度
+        #qdepth
         if pkt.haslayer(IPOption_INT):
             #pkt.show2()
             options = pkt.getlayer(IPOption_INT)

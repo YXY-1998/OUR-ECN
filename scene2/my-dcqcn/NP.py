@@ -19,7 +19,6 @@ count2=0
 count3=0
 
 def get_if():
-#获取接口列表['lo','eth0','eth1','eth2']
     ifs=get_if_list()
     iface=None
     for i in get_if_list():
@@ -45,24 +44,24 @@ def handle_pkt(pkt):
    
         #print("got a feedback packet")  
         etherdst=pkt[Ether].src
-        addr=ip.src#获取IP地址        
-        cnp = Ether(src=get_if_hwaddr(iface), dst= etherdst) / IP(dst=addr, tos=2) / UDP(dport=4321, sport=1234) #反馈包  
+        addr=ip.src   
+        cnp = Ether(src=get_if_hwaddr(iface), dst= etherdst) / IP(dst=addr, tos=2) / UDP(dport=4321, sport=1234)
         if ip.src == "10.0.1.1":    
-            if count1>=50:#2个包返回一次
+            if count1>=50:
                 sendp(cnp,iface = iface)
                 count1=0
             else:
                 count1 = count1+1
 
         if ip.src == "10.0.1.2":    
-            if count2>=50:#2个包返回一次
+            if count2>=50:
                 sendp(cnp,iface = iface)
                 count2=0
             else:
                 count2 = count2+1
 
         if ip.src == "10.0.1.3":    
-            if count3>=50:#2个包返回一次
+            if count3>=50:
                 sendp(cnp,iface = iface)
                 count3=0
             else:
@@ -71,15 +70,11 @@ def handle_pkt(pkt):
 
 
 def main():
-    #iface = 'h2-eth0'
     iface = get_if()
     print("sniffing on %s" % iface)
     sys.stdout.flush()
     sniff(filter="udp and port 4321", iface = iface, prn = lambda x: handle_pkt(x))
-    #while True:
-        #sniff(filter="udp", iface = iface, prn = lambda x: handle_pkt(x))
-        #sendp(cnp,iface = iface)
-        #time.sleep(5)
+
 
 
 if __name__ == '__main__':

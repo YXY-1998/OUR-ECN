@@ -21,7 +21,6 @@ count2=0
 count3=0
 
 def get_if():
-#获取接口列表['lo','eth0','eth1','eth2']
     ifs=get_if_list()
     iface=None
     for i in get_if_list():
@@ -42,40 +41,39 @@ def handle_pkt(pkt):
     
     iface = get_if()
     ip = pkt[IP]
-    time1=pkt.time#数据包发送时间
-    time2=time.time()#接收时间
-    t=time2-time1#单位s
+    time1=pkt.time
+    time2=time.time()
+    t=time2-time1#s
     
-    #阈值计算
-    k=0.17*2*t*1000000#微秒
+
+    k=0.17*2*t*1000000
     k=int(k)
-    #print(k)
+
     with open('k.txt', 'w+') as f:
         f.write(str(k))
-    #print("--------------------------------------------------------")
-    #t1=time.time()#时间初始化
+
     if ip.tos == 3:
    
-        #print("got a feedback packet")  
+ 
         etherdst=pkt[Ether].src
-        addr=ip.src#获取IP地址        
-        cnp = Ether(src=get_if_hwaddr(iface), dst= etherdst) / IP(dst=addr, tos=2) / UDP(dport=4321, sport=1234) #反馈包  
+        addr=ip.src      
+        cnp = Ether(src=get_if_hwaddr(iface), dst= etherdst) / IP(dst=addr, tos=2) / UDP(dport=4321, sport=1234)  
         if ip.src == "10.0.1.1":    
-            if count1>=50:#2个包返回一次
+            if count1>=50:
                 sendp(cnp,iface = iface)
                 count1=0
             else:
                 count1 = count1+1
 
         if ip.src == "10.0.1.2":    
-            if count2>=50:#2个包返回一次
+            if count2>=50:
                 sendp(cnp,iface = iface)
                 count2=0
             else:
                 count2 = count2+1
 
         if ip.src == "10.0.1.3":    
-            if count3>=50:#2个包返回一次
+            if count3>=50:
                 sendp(cnp,iface = iface)
                 count3=0
             else:
@@ -84,15 +82,10 @@ def handle_pkt(pkt):
 
 
 def main():
-    #iface = 'h2-eth0'
     iface = get_if()
     print("sniffing on %s" % iface)
     sys.stdout.flush()
     sniff(filter="udp and port 4321", iface = iface, prn = lambda x: handle_pkt(x))
-    #while True:
-        #sniff(filter="udp", iface = iface, prn = lambda x: handle_pkt(x))
-        #sendp(cnp,iface = iface)
-        #time.sleep(5)
 
 
 if __name__ == '__main__':

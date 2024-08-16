@@ -34,7 +34,7 @@ class IPOption_INT(IPOption):
                     FieldLenField("length", None, fmt="B",
                                   length_of="int_headers",
                                   adjust=lambda pkt,l:l*2+4),
-                    ShortField("count", 0),#短整形字段，名字count，初始值0
+                    ShortField("count", 0),
                     PacketListField("int_headers",
                                    [],
                                    SwitchTrace,
@@ -48,7 +48,6 @@ start_time2=time.time()
 start_time3=time.time()
 
 def get_if():
-#获取接口列表['lo','eth0','eth1','eth2']
     ifs=get_if_list()
     iface=None
     for i in get_if_list():
@@ -63,7 +62,6 @@ def get_if():
 
 def handle_pkt(pkt):
     print("got a packet")
-    #计算吞吐量
     global pkt_count
     global start_time1
     global start_time2
@@ -74,7 +72,6 @@ def handle_pkt(pkt):
     ip = pkt[IP] 
     if ip.src == "10.0.1.1":  
         count1=count1+1
-        #计算时间差
         elapsed_time1 = time.time() - start_time1
         if elapsed_time1 >= 1:
             th1 = count1/elapsed_time1
@@ -82,21 +79,19 @@ def handle_pkt(pkt):
             with open('data/q/throughput-my-q1.txt', 'a') as f:
                 f.write(str(th1)+'\n')
                 start_time1 = time.time()
-        #计算RTT
-        time1=pkt.time#数据包发送时间
-        time2=time.time()#接收时间
-        t1=2*(time2-time1)#单位s
-        t1=t1*1000#单位ms
+        #RTT
+        time1=pkt.time
+        time2=time.time()
+        t1=2*(time2-time1)#s
+        t1=t1*1000#ms
         with open('data/q/rtt-my-q1.txt', 'a') as f:
             f.write(str(t1)+'\n')
 
-        #队列长度      
+     
         if pkt.haslayer(IPOption_INT):
-            #pkt.show2()
             options = pkt.getlayer(IPOption_INT)
             qdepth2 = options.int_headers[0].qdepth
             qdepth1 = options.int_headers[1].qdepth
-            #print(qdepth)
             with open('data/q/qdepth1-my-q1.txt', 'a') as f:
                 f.write(str(qdepth1)+'\n')
             with open('data/q/qdepth2-my-q1.txt', 'a') as f:
@@ -104,7 +99,6 @@ def handle_pkt(pkt):
         
     if ip.src == "10.0.1.2":  
         count2=count2+1
-        #计算时间差
         elapsed_time2 = time.time() - start_time2
         if elapsed_time2 >= 1:
             th2 = count2/elapsed_time2
@@ -112,14 +106,14 @@ def handle_pkt(pkt):
             with open('data/q/throughput-my-q2.txt', 'a') as f:
                 f.write(str(th2)+'\n')
                 start_time2 = time.time()
-        #计算RTT
-        time1=pkt.time#数据包发送时间
-        time2=time.time()#接收时间
-        t2=2*(time2-time1)#单位s
-        t2=t2*1000#单位ms
+        #RTT
+        time1=pkt.time
+        time2=time.time()
+        t2=2*(time2-time1)#s
+        t2=t2*1000#ms
         with open('data/q/rtt-my-q2.txt', 'a') as f:
             f.write(str(t2)+'\n')
-        #队列长度      
+      
         if pkt.haslayer(IPOption_INT):
             #pkt.show2()
             options = pkt.getlayer(IPOption_INT)
@@ -133,7 +127,6 @@ def handle_pkt(pkt):
 
     if ip.src == "10.0.1.3":  
         count3=count3+1
-        #计算时间差
         elapsed_time3 = time.time() - start_time3
         if elapsed_time3 >= 1:
             th3 = count3/elapsed_time3
@@ -141,20 +134,19 @@ def handle_pkt(pkt):
             with open('data/q/throughput-my-q3.txt', 'a') as f:
                 f.write(str(th3)+'\n')
                 start_time3 = time.time()
-        #计算RTT
-        time1=pkt.time#数据包发送时间
-        time2=time.time()#接收时间
-        t3=2*(time2-time1)#单位s
-        t3=t3*1000#单位ms
+        #RTT
+        time1=pkt.time
+        time2=time.time()
+        t3=2*(time2-time1)#s
+        t3=t3*1000#ms
         with open('data/q/rtt-my-q3.txt', 'a') as f:
-            f.write(str(t3)+'\n')    
-        #队列长度      
+            f.write(str(t3)+'\n')       
         if pkt.haslayer(IPOption_INT):
             #pkt.show2()
             options = pkt.getlayer(IPOption_INT)
             qdepth2 = options.int_headers[0].qdepth
             qdepth1 = options.int_headers[1].qdepth
-            #print(qdepth)
+
             with open('data/q/qdepth1-my-q3.txt', 'a') as f:
                 f.write(str(qdepth1)+'\n')
             with open('data/q/qdepth2-my-q3.txt', 'a') as f:
@@ -162,7 +154,6 @@ def handle_pkt(pkt):
  
 
 def main():
-    #iface = 'h2-eth0'
     iface = get_if()
     print("sniffing on %s" % iface)
     sys.stdout.flush()
